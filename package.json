@@ -1,0 +1,42 @@
+{
+  "name": "sample-distribbution",
+  "version": "0.0.1",
+  "description": "small minimal quantile and CDF estimator for multiple large data streams",
+  "keywords": [
+    "stats",
+    "statistics",
+    "distribution",
+    "cdf",
+    "empirical distribution function",
+    "empirical cdf",
+    "quantiles",
+    "median",
+    "quartile",
+    "percentile",
+    "percentiles",
+    "t-digest",
+    "h-digest",
+    "q-digest",
+    "monte-carlo"
+  ],
+  "author": "Hugo Villeneuve",
+  "main": "./index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^12.7.5",
+    "cotest": "^4.0.3",
+    "h-digest": "^3.2.0",
+    "norm-dist": "^2.0.1",
+    "tdigest": "^0.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hville/h-digest.git"
+  },
+  "scripts": {
+    "test": "cotest ./tst",
+    "compare": "node ./util/compare",
+    "prepublishOnly": "npm test"
+  },
+  "license": "MIT"
+}
