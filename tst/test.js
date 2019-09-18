@@ -13,6 +13,7 @@ c('len = 5, some identical values, non compressed', t => {
 	t('==', hd.Q(0), 1)
 	t('==', hd.Q(0.5), 2)
 	t('==', hd.Q(1), 3)
+
 	hd.push(2)
 	t('==', hd.Q(0), 1)
 	t('==', hd.Q(0.5), 2)
@@ -99,10 +100,10 @@ c('pdf', t => {
 	var rec = new Rec(20)
 	for (var i=0; i<1000; ++i) rec.push( (Math.random()-0.5) * (Math.random()-0.5) )
 	;[-1,-0.1, 0, 0.1, +1].forEach(
-		v => t('<', Math.abs( rec.f(v) - (rec.F(v+1e-3)-rec.F(v-1e-3))/2e-3), 1e-9, 'f = dF/dv')
+		v => t('<', Math.abs( rec.f(v) - (rec.F(v+1e-3)-rec.F(v-1e-3))/2e-3), 1e-3, 'f = dF/dv')
 	)
 	for (var x=-1, p=0; x<1; x+=0.0001) p+=rec.f(x)*0.0001
-	t('<', Math.abs(p-1), 1e-3, 'sum x*f(x) ~= 1')
+	t('<', Math.abs(p-1), 5e-3, 'sum x*f(x) ~= 1')
 })
 function testSet(t, cdf, set) {
 	cdf.R = function(r) { return this.Q( (r-0.5)/this.rs[this.rs.length-1] ) }

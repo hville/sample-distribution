@@ -1,10 +1,10 @@
-var upperBound = require('./src/upperbound')
-
 module.exports = CDF
 
 function CDF(len) {
-	this.vs = Array(len)
-	this.rs = []
+	var bytes = 64*len,
+			buffer = new ArrayBuffer(bytes * 2)
+	this.vs = new Float64Array(buffer, 0, len)
+	this.rs = new Float64Array(buffer, bytes, len)
 }
 
 CDF.prototype = {
@@ -15,7 +15,8 @@ CDF.prototype = {
 	get E() {
 		var vs = this.vs,
 				rs = this.rs,
-				Mm = rs.length-1,
+				M = Math.min(rs.length, rs[rs.length-1]),
+				Mm = M-1,
 				sum = vs[0] + vs[Mm]
 		for (var i=0; i<Mm; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
 		return sum/2/rs[Mm]
@@ -24,7 +25,8 @@ CDF.prototype = {
 	M: function(order) {
 		var vs = this.vs,
 				rs = this.rs,
-				Mm = rs.length-1,
+				M = Math.min(rs.length, rs[rs.length-1]),
+				Mm = M-1,
 				Op = order + 1,
 				sum = ( Math.pow(vs[0], order) + Math.pow(vs[Mm], order) ) * Op / 2
 		for (var i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * ( Math.pow(vs[i+1], Op) - Math.pow(vs[i], Op) ) / (vs[i+1] - vs[i])
@@ -38,9 +40,9 @@ CDF.prototype = {
 	Q: function(prob) {
 		var vs = this.vs,
 				rs = this.rs,
-				M = rs.length,
+				M = Math.min(rs.length, rs[rs.length-1]),
 				h = rs[M-1] * prob + 0.5, // 0.5 <= h <= N+0.5
-				j = upperBound(rs, h), //      0 <= j <= M
+				j = topIndex(rs, h, M), //      0 <= j <= M
 				i = j-1
 		return j === 0 ? vs[0]
 			: j === M ? vs[M-1]
@@ -53,15 +55,13 @@ CDF.prototype = {
 	F: function(x) {
 		var vs = this.vs,
 				rs = this.rs,
-				M = rs.length,
-				N = rs[M-1]
-		if (x < vs[0]) return 0
-		if (x > vs[M-1]) return 1
-		var j = upperBound(vs, x),
+				M = Math.min(rs.length, rs[rs.length-1]),
+				N = rs[M-1],
+				j = topIndex(vs, x, M),
 				i = j-1
 		return (j === 0 ? 0.5
 			: j === M ? (N - 0.5)
-			: rs[i] + (rs[j] - rs[i]) * (x - vs[i]) / (vs[j] - vs[i]) - 0.5
+			: rs[i] - 0.5 + (rs[j] - rs[i]) * (x - vs[i]) / (vs[j] - vs[i])
 		) / N
 	},
 	/**
@@ -71,27 +71,29 @@ CDF.prototype = {
 	f: function(x) {
 		var vs = this.vs,
 				rs = this.rs,
-				M = rs.length,
+				M = Math.min(rs.length, rs[rs.length-1]),
 				N = rs[M-1]
 		if (x === vs[0] || x === vs[M-1]) return 0.5/N
-		var j = upperBound(vs, x),
+		var j = topIndex(vs, x, M),
 				i = j-1
 		return j === 0 || j === M ? 0 : (rs[j] - rs[i]) / (vs[j] - vs[i]) / N
 	},
 	push: function(x) {
-		var j = upperBound(this.vs, x),
-				vs = this.vs,
+		var vs = this.vs,
 				rs = this.rs,
-				M = rs.length,
+				M = Math.min(rs.length, rs[rs.length-1]),
+				j = topIndex(this.vs, x, M),
 				ir = 0
 		// lossless insert
 		if (M < vs.length) {
-			for (ir=rs.length; ir>j; --ir) {
+			for (ir=M; ir>j; --ir) {
 				rs[ir] = ir+1
 				vs[ir] = vs[ir-1]
 			}
 			rs[j] = j ? rs[j-1] + 1 : 1
 			vs[j] = x
+			//console.log(j, rs)
+			if (M!==rs.length-1) ++rs[rs.length-1]
 		}
 		// compression, droping a value while maintaining the interval average
 		else if (j === M) newmax(vs, rs, x)
@@ -151,4 +153,14 @@ function newmax(vs, rs, x) {
 		vs[j] = x
 	}
 	++rs[j]
+}
+
+function topIndex(arr, v, max) {
+	var low = 0
+	while (low < max) {
+		var mid = (low + max) >>> 1
+		if (arr[mid] < v) low = mid + 1
+		else max = mid
+	}
+	return max
 }

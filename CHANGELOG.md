@@ -17,5 +17,8 @@
 - Origin moment: recorder.M(order)
 - Tests for rec.f and rec.M
 
+## Changed
+- switched to typedArrays on a common buffer
+
 ### Removed
 - rec.R for ranks
