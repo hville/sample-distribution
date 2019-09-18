@@ -1,10 +1,9 @@
 module.exports = CDF
 
 function CDF(len) {
-	var bytes = 64*len,
-			buffer = new ArrayBuffer(bytes * 2)
+	var buffer = len.constructor === len ? len : new ArrayBuffer(len << 7)
 	this.vs = new Float64Array(buffer, 0, len)
-	this.rs = new Float64Array(buffer, bytes, len)
+	this.rs = new Float64Array(buffer, len << 6, len)
 }
 
 CDF.prototype = {

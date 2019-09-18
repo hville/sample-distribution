@@ -22,3 +22,7 @@
 
 ### Removed
 - rec.R for ranks
+
+## [0.1.1] - 2019-09-18
+### Added
+- Ability to initiate with given buffer

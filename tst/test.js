@@ -97,7 +97,7 @@ c('pdf', t => {
 	t('===', rec.f(7), 1/9, 'f')
 })
 c('pdf', t => {
-	var rec = new Rec(20)
+	var rec = new Rec(30)
 	for (var i=0; i<1000; ++i) rec.push( (Math.random()-0.5) * (Math.random()-0.5) )
 	;[-1,-0.1, 0, 0.1, +1].forEach(
 		v => t('<', Math.abs( rec.f(v) - (rec.F(v+1e-3)-rec.F(v-1e-3))/2e-3), 1e-3, 'f = dF/dv')
