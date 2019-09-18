@@ -1,5 +1,5 @@
 {
-  "name": "sample-distribbution",
+  "name": "sample-distribution",
   "version": "0.1.0",
   "description": "small minimal quantile and CDF estimator for multiple large data streams",
   "keywords": [
