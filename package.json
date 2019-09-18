@@ -1,6 +1,6 @@
 {
   "name": "sample-distribbution",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "small minimal quantile and CDF estimator for multiple large data streams",
   "keywords": [
     "stats",
@@ -25,7 +25,7 @@
   "devDependencies": {
     "@types/node": "^12.7.5",
     "cotest": "^4.0.3",
-    "h-digest": "^3.2.0",
+    "h-digest": "^3.3.0",
     "norm-dist": "^2.0.1",
     "tdigest": "^0.1.1"
   },

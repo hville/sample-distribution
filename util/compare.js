@@ -1,6 +1,7 @@
 var comp = require('./comparator'),
 		REC = require('..'),
 		HDG = require('h-digest'),
+		ALT = require('h-digest/src/_alt'),
 		TDG = require('tdigest'),
 		iZ = require('norm-dist/icdf')
 
@@ -20,14 +21,24 @@ var randomFcns = [
 ]
 
 var recs = {
-	keepAve: () => new REC(M),
+	keepAve: () => {
+		var rec = new REC(M)
+		rec.R = function(r) { return this.Q( (r-0.5)/N ) }
+		return rec
+	},
 	hdigest: () => {
 		var rec = HDG(M)
 		rec.R = function(r) { return this.quantile( r/(N+1) ) }
 		return rec
 	},
+	hdigest2: () => {
+		var rec = new ALT(M)
+		rec.R = function(r) { return this.quantile( (r-0.5)/N ) }
+		return rec
+	},
 	tdigest: () => {
 		var rec = new TDG.TDigest(0.8, M, 1.1)
+		// picked the most favorable probability function between r/(N+1) and (r-0.5)/N
 		rec.R = function(r) { return this.percentile( r/(N+1) ) }
 		return rec
 	}

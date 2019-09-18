@@ -11,3 +11,11 @@
 ## [0.0.1] - 2019-09-15
 ### Added
 - First publish
+
+## [0.1.0] - 2019-09-17
+### Added
+- Origin moment: recorder.M(order)
+- Tests for rec.f and rec.M
+
+### Removed
+- rec.R for ranks
