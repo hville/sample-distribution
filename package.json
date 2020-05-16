@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/node": "^14.0.1",
     "assert-op": "^0.5.1",
-    "norm-dist": "^3.0.0"
+    "norm-dist": "^3.0.1"
   },
   "repository": {
     "type": "git",

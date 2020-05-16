@@ -1,5 +1,5 @@
 <!-- markdownlint-disable MD004 MD007 MD010 MD041 MD022 MD024 MD032 -->
-# h-digest
+# sample distribution
 
 *takes a large and continuous data stream and continuously only retain a reduced [empirical CDF](https://en.wikipedia.org/wiki/Empirical_distribution_function) approximation*
 
