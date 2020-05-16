@@ -1,9 +1,6 @@
-module.exports = CDF
-
-function CDF(len) {
-	var buffer = len.constructor === len ? len : new ArrayBuffer(len << 7)
-	this.vs = new Float64Array(buffer, 0, len)
-	this.rs = new Float64Array(buffer, len << 6, len)
+export default function CDF(size) {
+	var vs = this.vs = size.buffer ? size : new Float64Array(2*size || 128)
+	this.rs = new Float64Array(vs.buffer, vs.byteOffset+vs.byteLength/2, vs.length/2)
 }
 
 CDF.prototype = {
@@ -17,8 +14,16 @@ CDF.prototype = {
 				M = Math.min(rs.length, rs[rs.length-1]),
 				Mm = M-1,
 				sum = vs[0] + vs[Mm]
-		for (var i=0; i<Mm; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
+		for (var i=0; i<Mm; ++i)
+			sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
 		return sum/2/rs[Mm]
+	},
+	get V() {
+		return this.M(2) - Math.pow(this.E, 2)
+	},
+	get S() {
+		var v = this.V
+		return v < 0 ? 0 : Math.sqrt(v)
 	},
 	// Origin Moments
 	M: function(order) {
@@ -84,7 +89,7 @@ CDF.prototype = {
 				j = topIndex(this.vs, x, M),
 				ir = 0
 		// lossless insert
-		if (M < vs.length) {
+		if (M < rs.length) {
 			for (ir=M; ir>j; --ir) {
 				rs[ir] = ir+1
 				vs[ir] = vs[ir-1]
@@ -102,7 +107,7 @@ CDF.prototype = {
 			if (Δwx !== 0) {
 				//KEEP 0 : r'(w-x) = (w+v-2x) + r(w-u) - s(v-u)
 				//DROP 0 : r'(w-x) = (w+v-2x) + r(w-u)
-				var r_v = (vs[2] + vs[1] - x - x + rs[1]*(vs[2] - u)) / Δwx,
+				var r_v = (vs[2] + vs[1] - 2*x + rs[1]*(vs[2] - u)) / Δwx,
 						r_u = r_v - rs[2] * (vs[1]-u) / Δwx
 				if ( (u + vs[1] > x + vs[2] && r_u > rs[0]) || r_v > rs[2]+1) {
 					vs[1] = u
@@ -114,7 +119,7 @@ CDF.prototype = {
 			for (ir=2; ir<rs.length; ++ir) ++rs[ir]
 		}
 		else {
-			var i = j === 1 || (j !== M-1 && x+x > vs[j]+vs[j-1] ) ? j : j-1
+			var i = j === 1 || (j !== M-1 && 2*x > vs[j]+vs[j-1] ) ? j : j-1
 			var w = vs[i+1],
 					v = vs[i],
 					Δwu = w-vs[i-1]
@@ -123,7 +128,7 @@ CDF.prototype = {
 				if ( v < x
 					? vs[i-1]+w < v+x || r_x > rs[i+1]+1
 					: v+x < vs[i-1] + w || r_x < rs[i-1]
-				) rs[i] += ( w-x + v-x ) / Δwu
+				) rs[i] += ( w+v-2*x ) / Δwu
 				else {
 					rs[i] = r_x
 					vs[i] = x

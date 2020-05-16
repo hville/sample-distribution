@@ -10,7 +10,7 @@
 # Example
 
 ```javascript
-Recorder = require('sample-distribution')
+import Recorder from 'sample-distribution'
 
 // recorder with 5 retained samples
 var recorder = new Recorder(5)
@@ -31,6 +31,7 @@ console.log('maximum:', recorder.Q(1)) // maximum:8
 # Limitations
 
 * other than the mean, the other moments (variance, skew, kurtosis) are not preserved
+* The moments are those of the generated curve that approximate those of the source samples
 
 # Background and related projects
 
@@ -50,6 +51,8 @@ Type `npm run compare` or see `./util/compare.js` for a benchmark and error comp
 ## Properties - read-only getters
 * `.N` number: total samples received
 * `.E` number: average of samples received and of the resulting approximated cdf
+* `.S` number: standard variation of the resulting aproximated cdf
+* `.V` number: variance of the resulting aproximated cdf
 
 ## Properties - internal
 * `.vs` array: internal store of retained sample values
