@@ -63,7 +63,7 @@ Type `npm run compare` or see `./util/compare.js` for a benchmark and error comp
 * `.F(value:number)` number: cummulative probability (cdf) of the specified value
 * `.f(value:number)` number:  probability density (pdf) of the specified value
 * `.Q(probability:number)` number: estimated value for specified probability
-* `.M(order:number)` number: estimated origine moment (ie. E = M(1), V=M(2)-E^2)
+* `.M(order:number)` number: estimated origin moment (ie. E = M(1), V=M(2)-E^2)
 
 # License
 

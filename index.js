@@ -1,5 +1,5 @@
-export default function CDF(size) {
-	var vs = this.vs = size.buffer ? size : new Float64Array(2*size || 128)
+export default function CDF(size=32) {
+	const vs = this.vs = size.buffer ? size : new Float64Array(2*size)
 	this.rs = new Float64Array(vs.buffer, vs.byteOffset+vs.byteLength/2, vs.length/2)
 }
 
@@ -25,7 +25,7 @@ CDF.prototype = {
 		var v = this.V
 		return v < 0 ? 0 : Math.sqrt(v)
 	},
-	// Origin Moments
+	// Origin Moments Σ∑∑
 	M: function(order) {
 		var vs = this.vs,
 				rs = this.rs,
@@ -33,6 +33,7 @@ CDF.prototype = {
 				Mm = M-1,
 				Op = order + 1,
 				sum = ( Math.pow(vs[0], order) + Math.pow(vs[Mm], order) ) * Op / 2
+		// https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments
 		for (var i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * ( Math.pow(vs[i+1], Op) - Math.pow(vs[i], Op) ) / (vs[i+1] - vs[i])
 		return sum / Op / rs[Mm]
 	},

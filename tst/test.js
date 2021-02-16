@@ -96,10 +96,10 @@ t('===', rec.f(5), 1/9, 'f')
 t('===', rec.f(7), 1/9, 'f')
 
 // pdf
-rec = new Rec(30)
+rec = new Rec(64)
 for (i=0; i<1000; ++i) rec.push( (Math.random()-0.5) * (Math.random()-0.5) )
 ;[-1,-0.1, 0, 0.1, +1].forEach(
-	v => t('<', Math.abs( rec.f(v) - (rec.F(v+1e-3)-rec.F(v-1e-3))/2e-3), 1e-3, 'f = dF/dv')
+	v => t('<', Math.abs( rec.f(v) - (rec.F(v+1e-4)-rec.F(v-1e-4))/2e-4), 1e-3, 'f = dF/dv')
 )
 for (var x=-1, p=0; x<1; x+=0.0001) p+=rec.f(x)*0.0001
 t('<', Math.abs(p-1), 5e-3, 'sum x*f(x) ~= 1')
