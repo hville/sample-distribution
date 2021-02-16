@@ -1,12 +1,13 @@
-export default function CDF(size=32) {
-	const vs = this.vs = size.buffer ? size : new Float64Array(2*size)
-	this.rs = new Float64Array(vs.buffer, vs.byteOffset+vs.byteLength/2, vs.length/2)
-}
+export default class {
+	constructor(size=32) {
+		const vs = size.buffer ? size : new Float64Array(2*size)
+		this.vs = vs
+		this.rs = new Float64Array(vs.buffer, vs.byteOffset + vs.byteLength/2, vs.length/2)
+	}
 
-CDF.prototype = {
-	constructor: CDF,
 	// Number of samples
-	get N() { return this.rs[this.rs.length-1] },
+	get N() { return this.rs[this.rs.length-1] }
+
 	// Expected Value
 	get E() {
 		var vs = this.vs,
@@ -14,35 +15,45 @@ CDF.prototype = {
 				M = Math.min(rs.length, rs[rs.length-1]),
 				Mm = M-1,
 				sum = vs[0] + vs[Mm]
-		for (var i=0; i<Mm; ++i)
-			sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
-		return sum/2/rs[Mm]
-	},
+		for (var i=0; i<Mm; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
+		return sum / 2 / rs[Mm]
+	}
+
+	// Variance
 	get V() {
 		return this.M(2) - Math.pow(this.E, 2)
-	},
+	}
+
+	// Standard Deviation
 	get S() {
 		var v = this.V
 		return v < 0 ? 0 : Math.sqrt(v)
-	},
-	// Origin Moments Σ∑∑
-	M: function(order) {
+	}
+
+	/**
+	 * Origin Moments
+	 * https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments
+	 *
+	 * @param {number} order
+	 * @return {number} E( X^order )
+	 */
+	M(order) {
 		var vs = this.vs,
 				rs = this.rs,
 				M = Math.min(rs.length, rs[rs.length-1]),
 				Mm = M-1,
 				Op = order + 1,
 				sum = ( Math.pow(vs[0], order) + Math.pow(vs[Mm], order) ) * Op / 2
-		// https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments
 		for (var i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * ( Math.pow(vs[i+1], Op) - Math.pow(vs[i], Op) ) / (vs[i+1] - vs[i])
 		return sum / Op / rs[Mm]
-	},
+	}
+
 	/**
 	 * Quantile function, provide the value for a given probability
 	 * @param {number} prob - probability or array of probabilities
 	 * @return {number} value or array of values
 	 */
-	Q: function(prob) {
+	Q(prob) {
 		var vs = this.vs,
 				rs = this.rs,
 				M = Math.min(rs.length, rs[rs.length-1]),
@@ -52,12 +63,13 @@ CDF.prototype = {
 		return j === 0 ? vs[0]
 			: j === M ? vs[M-1]
 			: vs[i] + (vs[j] - vs[i]) * (h-rs[i]) / (rs[j]-rs[i])
-	},
+	}
+
 	/**
 	 * @param {number} x - probability or array of probabilities
 	 * @return {number} value or array of values
 	 */
-	F: function(x) {
+	F(x) {
 		var vs = this.vs,
 				rs = this.rs,
 				M = Math.min(rs.length, rs[rs.length-1]),
@@ -68,12 +80,13 @@ CDF.prototype = {
 			: j === M ? (N - 0.5)
 			: rs[i] - 0.5 + (rs[j] - rs[i]) * (x - vs[i]) / (vs[j] - vs[i])
 		) / N
-	},
+	}
+
 	/**
 	 * @param {number} x - probability or array of probabilities
 	 * @return {number} value or array of values
 	 */
-	f: function(x) {
+	f(x) {
 		var vs = this.vs,
 				rs = this.rs,
 				M = Math.min(rs.length, rs[rs.length-1]),
@@ -82,8 +95,9 @@ CDF.prototype = {
 		var j = topIndex(vs, x, M),
 				i = j-1
 		return j === 0 || j === M ? 0 : (rs[j] - rs[i]) / (vs[j] - vs[i]) / N
-	},
-	push: function(x) {
+	}
+
+	push(x) {
 		var vs = this.vs,
 				rs = this.rs,
 				M = Math.min(rs.length, rs[rs.length-1]),
