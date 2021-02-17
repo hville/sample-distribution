@@ -1,8 +1,12 @@
-export default class {
+export default class D {
 	constructor(size=32) {
 		const vs = size.buffer ? size : new Float64Array(2*size)
-		this.vs = vs
-		this.rs = new Float64Array(vs.buffer, vs.byteOffset + vs.byteLength/2, vs.length/2)
+
+		// make properties !writeable !configurable and !enumerable
+		Object.defineProperties(this, {
+			vs: {value: vs},
+			rs: {value: new Float64Array(vs.buffer, vs.byteOffset + vs.byteLength/2, vs.length/2)}
+		})
 	}
 
 	// Number of samples
@@ -10,13 +14,13 @@ export default class {
 
 	// Expected Value
 	get E() {
-		var vs = this.vs,
-				rs = this.rs,
-				M = Math.min(rs.length, rs[rs.length-1]),
-				Mm = M-1,
-				sum = vs[0] + vs[Mm]
-		for (var i=0; i<Mm; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
-		return sum / 2 / rs[Mm]
+		const vs = this.vs,
+					rs = this.rs,
+					N = Math.min(rs.length, rs[rs.length-1]), // covers the case when the buffer is not yet full
+					M = N-1
+		let sum = vs[0] + vs[M] // correction at edge to match actual discrete result
+		for (let i=0; i<M; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
+		return sum / 2 / rs[M]
 	}
 
 	// Variance
@@ -26,8 +30,32 @@ export default class {
 
 	// Standard Deviation
 	get S() {
-		var v = this.V
+		const v = this.V
 		return v < 0 ? 0 : Math.sqrt(v)
+	}
+
+	/**
+	 * sum of X**exp
+	 * https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments
+	 *
+	 * @param {number} order
+	 * @return {number} E( X^order )
+	 */
+	 Σ(exp) {
+		const vs = this.vs,
+					rs = this.rs,
+					M = Math.min(rs.length, rs[rs.length-1]),
+					Mm = M-1,
+					Op = order + 1
+		if (exp === 0) return rs[Mm]
+		if (exp === 1) {
+			let sum = vs[0] + vs[M] // correction at edge to match actual discrete result
+			for (let i=0; i<M; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
+			return sum / 2
+		}
+		let sum = ( Math.pow(vs[0], order) + Math.pow(vs[Mm], order) ) * Op / 2
+		for (var i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * ( Math.pow(vs[i+1], Op) - Math.pow(vs[i], Op) ) / (vs[i+1] - vs[i])
+		return sum / Op
 	}
 
 	/**
@@ -38,12 +66,12 @@ export default class {
 	 * @return {number} E( X^order )
 	 */
 	M(order) {
-		var vs = this.vs,
-				rs = this.rs,
-				M = Math.min(rs.length, rs[rs.length-1]),
-				Mm = M-1,
-				Op = order + 1,
-				sum = ( Math.pow(vs[0], order) + Math.pow(vs[Mm], order) ) * Op / 2
+		const vs = this.vs,
+					rs = this.rs,
+					M = Math.min(rs.length, rs[rs.length-1]),
+					Mm = M-1,
+					Op = order + 1
+		let sum = ( Math.pow(vs[0], order) + Math.pow(vs[Mm], order) ) * Op / 2
 		for (var i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * ( Math.pow(vs[i+1], Op) - Math.pow(vs[i], Op) ) / (vs[i+1] - vs[i])
 		return sum / Op / rs[Mm]
 	}

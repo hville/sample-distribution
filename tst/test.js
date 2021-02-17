@@ -136,4 +136,5 @@ t('pdf', a=>{
 	)
 	for (var x=-1, p=0; x<1; x+=0.0001) p+=rec.f(x)*0.0001
 	a('<', Math.abs(p-1), 5e-3, 'sum x*f(x) ~= 1')
+	console.log(rec)
 })
