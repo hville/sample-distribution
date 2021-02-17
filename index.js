@@ -45,7 +45,8 @@ export default class D {
 			for (let i=0; i<Mm; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
 			return sum / Op
 		}
-		let sum = ( Math.pow(vs[0], pow) + Math.pow(vs[Mm], pow) ) * Op / 2 //TODO can taper edges instead of square
+		//let sum = ( Math.pow(vs[0], pow) + Math.pow(vs[Mm], pow) ) * Op / 2 //square edge instead of tapered
+		let sum = Math.pow(vs[Mm]-vs[0], pow) //taper edges instead of square
 		for (let i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * ( Math.pow(vs[i+1], Op) - Math.pow(vs[i], Op) ) / (vs[i+1] - vs[i])
 		return sum / Op
 	}
