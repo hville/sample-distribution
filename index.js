@@ -1,4 +1,8 @@
+// for Σ(), a half band is added to both ends to get exact Σ(1) and Σ(2)
+const PAD = (Math.sqrt(17)-3)/4 // min' = min - PAD*(max-min); max' = max + PAD*(max-min)
+
 export default class D {
+
 	constructor(size=32) {
 		const vs = size.buffer ? size : new Float64Array(2*size)
 
@@ -36,18 +40,20 @@ export default class D {
 	 Σ(pow) {
 		const vs = this.vs,
 					rs = this.rs,
-					M = Math.min(rs.length, rs[rs.length-1]), // in case the buffer is not full
-					Mm = M-1,
+					N = Math.min(rs.length, rs[rs.length-1]), // in case the buffer is not full
+					Mm = N-1,
 					Op = pow + 1
 		if (pow === 0) return rs[Mm]
 		if (pow === 1) { //same as below but simplified
-			let sum = vs[0] + vs[Mm] // correction at edge to match actual discrete result
+			let sum = vs[0] + vs[Mm] // correction at edge to match actual discrete result (PAD cancels out)
 			for (let i=0; i<Mm; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
 			return sum / Op
 		}
-		//let sum = ( Math.pow(vs[0], pow) + Math.pow(vs[Mm], pow) ) * Op / 2 //square edge instead of tapered
-		let sum = Math.pow(vs[Mm]-vs[0], pow) //taper edges instead of square
-		for (let i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * ( Math.pow(vs[i+1], Op) - Math.pow(vs[i], Op) ) / (vs[i+1] - vs[i])
+		// half band is added to both ends to get exact Σ(1) and Σ(2)
+		const Δ = PAD * (vs[Mm]-vs[0]) / Mm
+		let sum = ( (vs[Mm]+Δ)**Op - vs[Mm]**Op + vs[0]**Op - (vs[0]-Δ)**Op ) / Δ / 2
+		//let sum = ( vs[0]**pow + vs[Mm]**pow )/2 * Op // square edge instead of tapered
+		for (let i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * (vs[i+1]**Op - vs[i]**Op) / (vs[i+1] - vs[i])
 		return sum / Op
 	}
 
