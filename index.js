@@ -19,12 +19,13 @@ export default class D {
 	// Expected Value
 	get E() { return this.Σ(1) / this.N }
 
-	// Variance
+	// Sample Variance
 	get V() {
-		return this.M(2) - Math.pow(this.E, 2)
+		const N = this.N
+		return ( this.Σ(2) - this.Σ(1)**2 / N ) / (N-1)
 	}
 
-	// Standard Deviation
+	// Sample Standard Deviation
 	get S() {
 		const v = this.V
 		return v < 0 ? 0 : Math.sqrt(v)
@@ -50,7 +51,7 @@ export default class D {
 			return sum / Op
 		}
 		// half band is added to both ends to get exact Σ(1) and Σ(2)
-		const Δ = PAD * (vs[Mm]-vs[0]) / Mm
+		const Δ = PAD * (vs[Mm]-vs[0]) / Mm //TODO check rare case of Δ=0?
 		let sum = ( (vs[Mm]+Δ)**Op - vs[Mm]**Op + vs[0]**Op - (vs[0]-Δ)**Op ) / Δ / 2
 		//let sum = ( vs[0]**pow + vs[Mm]**pow )/2 * Op // square edge instead of tapered
 		for (let i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * (vs[i+1]**Op - vs[i]**Op) / (vs[i+1] - vs[i])

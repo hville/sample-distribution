@@ -3,7 +3,7 @@
   "type": "module",
   "main": "./index.js",
   "module": "./index.js",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "small minimal quantile and CDF estimator for multiple large data streams",
   "keywords": [
     "stats",

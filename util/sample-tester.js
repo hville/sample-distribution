@@ -21,13 +21,14 @@ export default function(samples, recs, results) {
 }
 
 function normalize(samples) {
-	var s = 0,
-			ss = 0
-	samples.forEach(v => {
-		s += v
-		ss += v*v
-	})
-	s /= samples.length
-	ss = Math.sqrt(ss/samples.length - s*s)
-	return samples.map(v => (v-s) / ss)
+	var s1 = 0,
+			s2 = 0,
+			N = samples.length
+	for (let v of samples) {
+		s1 += v
+		s2 += v*v
+	}
+	s2 = Math.sqrt( ( s2 - s1*s1/N ) / (N-1) ) //sample variance
+	s1 /= N
+	return samples.map(v => (v-s1) / s2)
 }
