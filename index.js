@@ -1,11 +1,7 @@
-// for Σ(), a half band is added to both ends to get exact Σ(1) and Σ(2)
-const PAD = (Math.sqrt(17)-3)/4 // min' = min - PAD*(max-min); max' = max + PAD*(max-min)
-
 export default class D {
 
 	constructor(size=32) {
 		const vs = size.buffer ? size : new Float64Array(2*size)
-
 		// make properties !writeable !configurable and !enumerable
 		Object.defineProperties(this, {
 			vs: {value: vs},
@@ -32,13 +28,14 @@ export default class D {
 	}
 
 	/**
-	 * sum of X**exp
-	 * https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments
+	 * Σ(X**p)
+	 * exact when there is no compression
+	 * with compression, range between values treated as a uniform distribution
 	 *
 	 * @param {number} order
 	 * @return {number} Σ( X^pow )
 	 */
-	 Σ(pow) {
+	Σ(pow) { //values as-is with internal uniform interval
 		const vs = this.vs,
 					rs = this.rs,
 					N = Math.min(rs.length, rs[rs.length-1]), // in case the buffer is not full
@@ -50,12 +47,13 @@ export default class D {
 			for (let i=0; i<Mm; ++i) sum += (vs[i+1] + vs[i]) * (rs[i+1] - rs[i])
 			return sum / Op
 		}
-		// half band is added to both ends to get exact Σ(1) and Σ(2)
-		const Δ = PAD * (vs[Mm]-vs[0]) / Mm //TODO check rare case of Δ=0?
-		let sum = ( (vs[Mm]+Δ)**Op - vs[Mm]**Op + vs[0]**Op - (vs[0]-Δ)**Op ) / Δ / 2
-		//let sum = ( vs[0]**pow + vs[Mm]**pow )/2 * Op // square edge instead of tapered
-		for (let i=0; i<Mm; ++i) sum += (rs[i+1] - rs[i]) * (vs[i+1]**Op - vs[i]**Op) / (vs[i+1] - vs[i])
-		return sum / Op
+		let sum = vs[0]**pow
+		for (let i=1; i<N; ++i) {
+			// https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments
+			sum += vs[i]**pow
+					+ (rs[i] - rs[i-1] - 1) * (vs[i]**Op - vs[i-1]**Op) / (vs[i] - vs[i-1]) / Op
+		}
+		return sum
 	}
 
 	/**
@@ -115,7 +113,10 @@ export default class D {
 					i = j-1
 		return j === 0 || j === M ? 0 : (rs[j] - rs[i]) / (vs[j] - vs[i]) / N
 	}
-
+	/**
+	 * Adds a value, compressed only if buffer full
+	 * @param {number} x
+	 */
 	push(x) {
 		const vs = this.vs,
 					rs = this.rs,
