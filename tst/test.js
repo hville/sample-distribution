@@ -135,3 +135,14 @@ t('pdf', a=>{
 	a('<', Math.abs(p-1), 5e-3, 'sum x*f(x) ~= 1')
 	console.log(rec)
 })
+
+t('transferable', a=>{
+	const rec = new Rec(5)
+	;[0,1,2,3,4,5,6,7,8].forEach(rec.push, rec)
+	const kin = new Rec(new Float64Array(rec.vs))
+	a('===', kin.f(1), 1/9, 'f')
+	a('===', kin.f(3), 1/9, 'f')
+	const kid = new Rec(rec.vs.buffer)
+	a('===', kid.f(1), 1/9, 'f')
+	a('===', kid.f(3), 1/9, 'f')
+})

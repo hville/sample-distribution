@@ -2,7 +2,7 @@
   "name": "sample-distribution",
   "type": "module",
   "main": "./index.js",
-  "module": "./index.js",
+  "browser": "./index.js",
   "version": "1.3.0",
   "description": "small minimal quantile and CDF estimator for multiple large data streams",
   "keywords": [

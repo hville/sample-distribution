@@ -1,7 +1,7 @@
 export default class D {
 
 	constructor(size=32) {
-		const vs = size.buffer ? size : new Float64Array(2*size)
+		const vs = size.buffer ? size : new Float64Array(size.byteLength ? size : 2*size)
 		// make properties !writeable !configurable and !enumerable
 		Object.defineProperties(this, {
 			vs: {value: vs},
