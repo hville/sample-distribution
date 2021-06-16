@@ -1,4 +1,5 @@
-export default class D {
+
+class D {
 
 	constructor(size=32) {
 		const vs = size.buffer ? size : new Float64Array(size.byteLength ? size : 2*size)
@@ -201,3 +202,5 @@ function topIndex(arr, v, max) {
 	}
 	return max
 }
+
+module.exports = D;
