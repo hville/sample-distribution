@@ -113,6 +113,49 @@ export default class D {
 					i = j-1
 		return j === 0 || j === M ? 0 : (rs[j] - rs[i]) / (vs[j] - vs[i]) / N
 	}
+
+	/**
+	 * @param {Object} ctx - canvas 2D context
+	 * @param {number} xMin
+	 * @param {number} xMax
+	 * @return {void}
+	 */
+	plotF(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1])	{
+		const rs = this.rs,
+					vs = this.vs,
+					xScale = ctx.canvas.width / (xMax-xMin),
+					yScale = ctx.canvas.height / (rs[rs.length-1]),
+					H = ctx.canvas.height
+
+		ctx.beginPath()
+		ctx.moveTo( (vs[0]-xMin)*xScale, H )
+		for (let i=0; i<rs.length; ++i) ctx.lineTo( (vs[i]-xMin)*xScale, H-(rs[i]-0.5)*yScale )
+		ctx.lineTo( (vs[rs.length-1]-xMin)*xScale, 0 )
+	}
+	/**
+	 * @param {Object} ctx - canvas 2D context
+	 * @param {number} xMin
+	 * @param {number} xMax
+	 * @param {number} yMax
+	 * @return {void}
+	 */
+	plotf(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-2]-this.vs[1])) {
+		const rs = this.rs,
+					vs = this.vs,
+					xScale = ctx.canvas.width / (xMax-xMin),
+					yScale = ctx.canvas.height * (this.vs[this.rs.length-1]-this.vs[0]) / (6*rs[rs.length-1]),
+					H = ctx.canvas.height
+
+		let x = (vs[0]-xMin) * xScale
+		ctx.beginPath()
+		ctx.moveTo( x, H )
+		for (let i=0, j=1, y=0; j<rs.length; i=j++) {
+			ctx.lineTo( x, y = H - (rs[j]-rs[i])/(vs[j]-vs[i]) * yScale ) //up
+			ctx.lineTo( x = (vs[j]-xMin) * xScale, y ) //right
+		}
+		ctx.lineTo( x, H )
+	}
+
 	/**
 	 * Adds a value, compressed only if buffer full
 	 * @param {number} x
@@ -138,10 +181,10 @@ export default class D {
 			const u = vs[0],
 						Δwx = vs[2] - x
 			if (Δwx !== 0) {
-				//KEEP 0 : r'(w-x) = (w+v-2x) + r(w-u) - s(v-u)
-				//DROP 0 : r'(w-x) = (w+v-2x) + r(w-u)
-				const r_v = (vs[2] + vs[1] - 2*x + rs[1]*(vs[2] - u)) / Δwx,
-							r_u = r_v - rs[2] * (vs[1]-u) / Δwx
+				//DROP u = vs[0] : r'(w-x) = (w+v-2x) + r(w-u)          //KEEP v
+				//KEEP u = vs[0] : r'(w-x) = (w+v-2x) + r(w-u) - s(v-u) //DROP v
+				const r_v = (vs[2] + vs[1] - 2*x + rs[1]*(vs[2] - u)) / Δwx, // DROP u KEEP v
+							r_u = r_v - rs[2] * (vs[1]-u) / Δwx                    // KEEP u DROP v
 				if ( (u + vs[1] > x + vs[2] && r_u > rs[0]) || r_v > rs[2]+1) {
 					vs[1] = u
 					rs[1] = r_u
