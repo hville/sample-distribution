@@ -6,20 +6,42 @@
 
 <body>
 
-<canvas height=400 width=900></canvas>
+<canvas id=canvas1 height=300 width=900></canvas>
+<div id=div1></div>
+<canvas id=canvas2 height=300 width=900></canvas>
+<div id=div2></div>
 
 <script type=module>
-
 import D from '../index.js'
+const $ = document.querySelector.bind(document),
+			uniform = new D(64),
+			n1 = 1_000,
+			n2 = 999_000
+let ms = 0,
+		ctx
 
-const uniform = new D(64)
-for(let i=0; i<2048; ++i) uniform.push(Math.random())
+ms -= performance.now()
+for(let i=0; i<n1; ++i) uniform.push(Math.random())
+ms += performance.now()
 
-const ctx = document.querySelector('canvas').getContext('2d')
+ctx = $('#canvas1').getContext('2d')
 uniform.plotf(ctx)
 ctx.stroke()
 uniform.plotF(ctx)
 ctx.stroke()
+$('#div1').textContent = `#${n1} : ${ms} ms`
+
+ms -= performance.now()
+for(let i=0; i<n2; ++i) uniform.push(Math.random())
+ms += performance.now()
+
+ctx = $('#canvas2').getContext('2d')
+uniform.plotf(ctx)
+ctx.stroke()
+uniform.plotF(ctx)
+ctx.stroke()
+$('#div2').textContent = `#${n1+n2} : ${ms} ms`
+
 
 
 </script>
