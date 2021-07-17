@@ -163,8 +163,8 @@ export default class D {
 	push(x) {
 		const vs = this.vs,
 					rs = this.rs,
-					M = Math.min(rs.length, rs[rs.length-1])
-		let j = topIndex(this.vs, x, M)
+					M = Math.min(rs.length, rs[rs.length-1]),
+					j = topIndex(this.vs, x, M)
 		// lossless insert
 		if (M < rs.length) {
 			for (let ir=M; ir>j; --ir) {
@@ -176,25 +176,7 @@ export default class D {
 			if (M!==rs.length-1) ++rs[rs.length-1]
 		}
 		// compression, droping a value while maintaining the interval average
-		else if (j === M) {
-			--j
-			const i = j-1,
-						h = i-1,
-						Δwv = vs[j]-vs[i],
-						Δxu = x - vs[h],
-						rjh = rs[i]*(vs[j]-vs[h])
-			if (Δxu !== 0) {
-				const r_w = ( rs[j]*(x-vs[i]) + rjh - rs[h]*Δwv ) / Δxu,
-							r_v = ( rs[j]*(x-vs[j]) + rjh - Δwv ) / Δxu
-				if ( r_v < rs[h] || (vs[i] + vs[j] < vs[h] + x && r_w < rs[j]+1)) {
-					vs[i] = vs[j]
-					rs[i] = r_w
-				}
-				else rs[i] = r_v
-				vs[j] = x
-			}
-			++rs[j]
-		}
+		else if (j === M) newmax(vs, rs, x)
 		else if (j === 0) {
 			const u = vs[0],
 						Δwx = vs[2] - x
@@ -212,30 +194,45 @@ export default class D {
 			}
 			for (let ir=2; ir<rs.length; ++ir) ++rs[ir]
 		}
-		else if ( j !== 1 && (j === M-1 || 2*x < vs[j]+vs[j-1] ) ) {
-			// u < v < x < w
-			--j
-			let k = j+1,
-					i = j-1
-			const v = vs[j],
-					sum2 = 2*x + getSum2(vs,rs,i,j,k)
-			++rs[k]
-			if ( (v+x)*(rs[k]-rs[i]) < sum2) vs[j] = x
-			rjFix(vs,rs,i,j,k,sum2)
-			while(++k<rs.length) ++rs[k]
-	}
 		else {
-			// u < x < v < w
-			let k = j+1,
-					i = j-1
-			const v = vs[j],
-						sum2 = 2*x + getSum2(vs,rs,i,j,k)
-			++rs[k]
-			if ( (x+v)*(rs[k]-rs[i]) > sum2) vs[j] = x
-			rjFix(vs,rs,i,j,k,sum2)
-			while(++k<rs.length) ++rs[k]
+			let i = j === 1 || (j !== M-1 && 2*x > vs[j]+vs[j-1] ) ? j : j-1
+			const w = vs[i+1],
+						v = vs[i],
+						Δwu = w-vs[i-1]
+			if (Δwu !== 0) {
+				const r_x = rs[i] + ( w-x + (x-v)*(rs[i+1] - rs[i-1]) ) / Δwu
+				if ( v < x
+					? vs[i-1]+w < v+x || r_x > rs[i+1]+1
+					: v+x < vs[i-1] + w || r_x < rs[i-1]
+				) rs[i] += ( w+v-2*x ) / Δwu
+				else {
+					rs[i] = r_x
+					vs[i] = x
+				}
+			}
+			while(++i<rs.length) ++rs[i]
 		}
 	}
+}
+
+function newmax(vs, rs, x) {
+	const j = rs.length-1,
+				i = j-1,
+				h = i-1,
+				Δwv = vs[j]-vs[i],
+				Δxu = x - vs[h],
+				rjh = rs[i]*(vs[j]-vs[h])
+	if (Δxu !== 0) {
+		const r_w = ( rs[j]*(x-vs[i]) + rjh - rs[h]*Δwv ) / Δxu,
+					r_v = ( rs[j]*(x-vs[j]) + rjh - Δwv ) / Δxu
+		if ( r_v < rs[h] || (vs[i] + vs[j] < vs[h] + x && r_w < rs[j]+1)) {
+			vs[i] = vs[j]
+			rs[i] = r_w
+		}
+		else rs[i] = r_v
+		vs[j] = x
+	}
+	++rs[j]
 }
 
 function topIndex(arr, v, max) {
@@ -246,12 +243,4 @@ function topIndex(arr, v, max) {
 		else max = mid
 	}
 	return max
-}
-
-function getSum2(vs,rs,i,j,k) {
-	return ( vs[k]+vs[j] )*( rs[k]-rs[j] ) + ( vs[j]+vs[i] )*( rs[j]-rs[i] )
-}
-function rjFix(vs,rs,i,j,k,sum2) {
-	rs[j] = ( (vs[k]+vs[j])*rs[k] - (vs[j]+vs[i])*rs[i] - sum2 ) / (vs[k]-vs[i])
-	//if (Math.abs(sum2-getSum2(vs,rs,i,j,k)) > 0.001) throw Error
 }

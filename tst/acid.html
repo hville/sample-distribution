@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang=en>
+<head>
+	<meta name=viewport content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<canvas id=canvas1 height=300 width=900></canvas>
+<div id=div1></div>
+<canvas id=canvas2 height=300 width=900></canvas>
+<div id=div2></div>
+
+<script type=module>
+import Ref from '../ref.js'
+import Rec from '../index.js'
+
+const $ = document.querySelector.bind(document),
+			m = 32,
+			n = m*16,
+			q = 2048,
+			size = 350,
+			scale = window.devicePixelRatio
+
+function test(R, selector) {
+	const canvas = document.querySelector(selector),
+				ctx = canvas.getContext('2d')
+	canvas.style.width = 3*size + 'px'
+	canvas.style.height = size + 'px'
+  canvas.width = Math.floor(3*size * scale)
+  canvas.height = Math.floor(size * scale)
+	ctx.font = '24px mono'
+
+	let ms=0
+	for (let qi=0; qi<q; ++qi) {
+		const rec = new R(m)
+		ms -= performance.now()
+		for(let i=0; i<n; ++i) rec.push(Math.random())
+		ms += performance.now()
+		rec.plotf(ctx)
+		ctx.stroke()
+		rec.plotF(ctx)
+		ctx.stroke()
+	}
+	ctx.fillText(`#${n*q} : ${ms.toPrecision(3)} ms`, 10, 50)
+}
+test(Ref, '#canvas2')
+test(Rec, '#canvas1')
+
+</script>
+</body>

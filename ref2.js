@@ -217,23 +217,35 @@ export default class D {
 			--j
 			let k = j+1,
 					i = j-1
-			const v = vs[j],
-					sum2 = 2*x + getSum2(vs,rs,i,j,k)
-			++rs[k]
-			if ( (v+x)*(rs[k]-rs[i]) < sum2) vs[j] = x
-			rjFix(vs,rs,i,j,k,sum2)
-			while(++k<rs.length) ++rs[k]
-	}
+			const w = vs[k],
+						v = vs[j],
+						Δwu = w-vs[i]
+			if (Δwu !== 0) {
+				const r_x = rs[j] + ( w-x + (x-v)*(rs[k] - rs[i]) ) / Δwu
+				if ( vs[i]+w < v+x || r_x > rs[k]+1) rs[j] += ( w+v-2*x ) / Δwu
+				else {
+					rs[j] = r_x
+					vs[j] = x
+				}
+			}
+			while(++j<rs.length) ++rs[j]
+		}
 		else {
 			// u < x < v < w
 			let k = j+1,
 					i = j-1
-			const v = vs[j],
-						sum2 = 2*x + getSum2(vs,rs,i,j,k)
-			++rs[k]
-			if ( (x+v)*(rs[k]-rs[i]) > sum2) vs[j] = x
-			rjFix(vs,rs,i,j,k,sum2)
-			while(++k<rs.length) ++rs[k]
+			const w = vs[k],
+						v = vs[j],
+						Δwu = w-vs[i]
+			if (Δwu !== 0) {
+				const r_x = rs[j] + ( w-x + (x-v)*(rs[k] - rs[i]) ) / Δwu
+				if ( v+x < vs[i] + w || r_x < rs[i]) rs[j] += ( w+v-2*x ) / Δwu
+				else {
+					rs[j] = r_x
+					vs[j] = x
+				}
+			}
+			while(++j<rs.length) ++rs[j]
 		}
 	}
 }
