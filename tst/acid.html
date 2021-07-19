@@ -6,28 +6,28 @@
 
 <body>
 
-<canvas id=canvas1 height=300 width=900></canvas>
-<div id=div1></div>
-<canvas id=canvas2 height=300 width=900></canvas>
-<div id=div2></div>
+<canvas id=canvas1></canvas>
+<canvas id=canvas2></canvas>
+<canvas id=canvas3></canvas>
 
 <script type=module>
 import Ref from '../ref.js'
 import Rec from '../index.js'
+import Top from '../best.js'
 
 const $ = document.querySelector.bind(document),
-			m = 32,
-			n = m*16,
-			q = 2048,
-			size = 350,
+			m = 64,
+			n = m*8,
+			q = 64,
+			size = 256,
 			scale = window.devicePixelRatio
 
 function test(R, selector) {
 	const canvas = document.querySelector(selector),
 				ctx = canvas.getContext('2d')
-	canvas.style.width = 3*size + 'px'
+	canvas.style.width = 4*size + 'px'
 	canvas.style.height = size + 'px'
-  canvas.width = Math.floor(3*size * scale)
+  canvas.width = Math.floor(4*size * scale)
   canvas.height = Math.floor(size * scale)
 	ctx.font = '24px mono'
 
@@ -39,13 +39,24 @@ function test(R, selector) {
 		ms += performance.now()
 		rec.plotf(ctx)
 		ctx.stroke()
-		rec.plotF(ctx)
-		ctx.stroke()
+		//rec.plotF(ctx)
+		//ctx.stroke()
 	}
-	ctx.fillText(`#${n*q} : ${ms.toPrecision(3)} ms`, 10, 50)
+	ctx.fillText(`#${n*q} : ${ms.toPrecision(3)} ms, ${countPixels(ctx).toPrecision(3)}`, 10, 50)
 }
 test(Ref, '#canvas2')
 test(Rec, '#canvas1')
+test(Top, '#canvas3')
 
+
+
+
+function countPixels(ctx) {
+	const data = ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data
+	let n = 0,
+			i = -1
+	while ( (i+=4) < data.length) if (data[i]) ++n
+	return n
+}
 </script>
 </body>
