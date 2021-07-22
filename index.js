@@ -139,19 +139,19 @@ export default class D {
 	 * @param {number} yMax
 	 * @return {void}
 	 */
-	plotf(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-2]-this.vs[1])) {
+	plotf(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-1]-this.vs[0])) {
 		const rs = this.rs,
 					vs = this.vs,
 					xScale = ctx.canvas.width / (xMax-xMin),
-					yScale = ctx.canvas.height * (this.vs[this.rs.length-1]-this.vs[0]) / (6*rs[rs.length-1]),
+					yScale = ctx.canvas.height / yMax / rs[rs.length-1],
 					H = ctx.canvas.height
 
-		let x = (vs[0]-xMin) * xScale
+		let x = Math.round((vs[0]-xMin) * xScale)+0.5
 		ctx.beginPath()
 		ctx.moveTo( x, H )
 		for (let i=0, j=1, y=0; j<rs.length; i=j++) {
-			ctx.lineTo( x, y = H - (rs[j]-rs[i])/(vs[j]-vs[i]) * yScale ) //up
-			ctx.lineTo( x = (vs[j]-xMin) * xScale, y ) //right
+			ctx.lineTo( x, y = Math.round(H - (rs[j]-rs[i])/(vs[j]-vs[i]) * yScale)+0.5 ) //up
+			ctx.lineTo( x = Math.round((vs[j]-xMin) * xScale)+0.5, y ) //right
 		}
 		ctx.lineTo( x, H )
 	}
@@ -212,28 +212,40 @@ export default class D {
 			}
 			for (let ir=2; ir<rs.length; ++ir) ++rs[ir]
 		}
-		else if ( j !== 1 && (j === M-1 || 2*x < vs[j]+vs[j-1] ) ) {
+		else if ( j !== 1 && (j === M-1 || 2*x < vs[j+1]+vs[j-2] ) ) { //vs[j]+vs[j-1] ) ) {
 			// u < v < x < w
 			--j
 			let k = j+1,
 					i = j-1
-			const v = vs[j],
-					sum2 = 2*x + getSum2(vs,rs,i,j,k)
-			++rs[k]
-			if ( (v+x)*(rs[k]-rs[i]) < sum2) vs[j] = x
-			rjFix(vs,rs,i,j,k,sum2)
-			while(++k<rs.length) ++rs[k]
-	}
+			const w = vs[k],
+						v = vs[j],
+						Δwu = w-vs[i]
+			if (Δwu !== 0) {
+				const r_xΔwu = rs[j]*Δwu + ( w-x + (x-v)*(rs[k] - rs[i]) )
+				if ( vs[i]+w < v+x || r_xΔwu >= (rs[k]+1)*Δwu) rs[j] += ( w+v-2*x ) / Δwu
+				else {
+					rs[j] = r_xΔwu/Δwu
+					vs[j] = x
+				}
+			}
+			while(++j<rs.length) ++rs[j]
+		}
 		else {
 			// u < x < v < w
 			let k = j+1,
 					i = j-1
-			const v = vs[j],
-						sum2 = 2*x + getSum2(vs,rs,i,j,k)
-			++rs[k]
-			if ( (x+v)*(rs[k]-rs[i]) > sum2) vs[j] = x
-			rjFix(vs,rs,i,j,k,sum2)
-			while(++k<rs.length) ++rs[k]
+			const w = vs[k],
+						v = vs[j],
+						Δwu = w-vs[i]
+			if (Δwu !== 0) {
+				const r_xΔwu = rs[j]*Δwu + ( w-x + (x-v)*(rs[k] - rs[i]) )
+				if ( x+v < vs[i]+w || r_xΔwu <= rs[i]*Δwu) rs[j] += ( w+v-2*x ) / Δwu
+				else {
+					rs[j] = r_xΔwu/Δwu
+					vs[j] = x
+				}
+			}
+			while(++j<rs.length) ++rs[j]
 		}
 	}
 }
@@ -246,12 +258,4 @@ function topIndex(arr, v, max) {
 		else max = mid
 	}
 	return max
-}
-
-function getSum2(vs,rs,i,j,k) {
-	return ( vs[k]+vs[j] )*( rs[k]-rs[j] ) + ( vs[j]+vs[i] )*( rs[j]-rs[i] )
-}
-function rjFix(vs,rs,i,j,k,sum2) {
-	rs[j] = ( (vs[k]+vs[j])*rs[k] - (vs[j]+vs[i])*rs[i] - sum2 ) / (vs[k]-vs[i])
-	//if (Math.abs(sum2-getSum2(vs,rs,i,j,k)) > 0.001) throw Error
 }

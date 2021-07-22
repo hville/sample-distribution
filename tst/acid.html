@@ -13,7 +13,7 @@
 <script type=module>
 import Ref from '../ref.js'
 import Rec from '../index.js'
-import Top from '../best.js'
+//import Top from '../best.js'
 
 const $ = document.querySelector.bind(document),
 			m = 64,
@@ -30,6 +30,7 @@ function test(R, selector) {
   canvas.width = Math.floor(4*size * scale)
   canvas.height = Math.floor(size * scale)
 	ctx.font = '24px mono'
+	ctx.imageSmoothingEnabled = false
 
 	let ms=0
 	for (let qi=0; qi<q; ++qi) {
@@ -46,7 +47,7 @@ function test(R, selector) {
 }
 test(Ref, '#canvas2')
 test(Rec, '#canvas1')
-test(Top, '#canvas3')
+//test(Top, '#canvas3')
 
 
 

@@ -139,19 +139,19 @@ export default class D {
 	 * @param {number} yMax
 	 * @return {void}
 	 */
-	plotf(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-2]-this.vs[1])) {
+	plotf(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-1]-this.vs[0])) {
 		const rs = this.rs,
 					vs = this.vs,
 					xScale = ctx.canvas.width / (xMax-xMin),
-					yScale = ctx.canvas.height * (this.vs[this.rs.length-1]-this.vs[0]) / (6*rs[rs.length-1]),
+					yScale = ctx.canvas.height / yMax / rs[rs.length-1],
 					H = ctx.canvas.height
 
-		let x = (vs[0]-xMin) * xScale
+		let x = Math.round((vs[0]-xMin) * xScale)+0.5
 		ctx.beginPath()
 		ctx.moveTo( x, H )
 		for (let i=0, j=1, y=0; j<rs.length; i=j++) {
-			ctx.lineTo( x, y = H - (rs[j]-rs[i])/(vs[j]-vs[i]) * yScale ) //up
-			ctx.lineTo( x = (vs[j]-xMin) * xScale, y ) //right
+			ctx.lineTo( x, y = Math.round(H - (rs[j]-rs[i])/(vs[j]-vs[i]) * yScale)+0.5 ) //up
+			ctx.lineTo( x = Math.round((vs[j]-xMin) * xScale)+0.5, y ) //right
 		}
 		ctx.lineTo( x, H )
 	}
@@ -163,8 +163,8 @@ export default class D {
 	push(x) {
 		const vs = this.vs,
 					rs = this.rs,
-					M = Math.min(rs.length, rs[rs.length-1]),
-					j = topIndex(this.vs, x, M)
+					M = Math.min(rs.length, rs[rs.length-1])
+		let j = topIndex(this.vs, x, M)
 		// lossless insert
 		if (M < rs.length) {
 			for (let ir=M; ir>j; --ir) {
@@ -176,7 +176,25 @@ export default class D {
 			if (M!==rs.length-1) ++rs[rs.length-1]
 		}
 		// compression, droping a value while maintaining the interval average
-		else if (j === M) newmax(vs, rs, x)
+		else if (j === M) {
+			--j
+			const i = j-1,
+						h = i-1,
+						Δwv = vs[j]-vs[i],
+						Δxu = x - vs[h],
+						rjh = rs[i]*(vs[j]-vs[h])
+			if (Δxu !== 0) {
+				const r_w = ( rs[j]*(x-vs[i]) + rjh - rs[h]*Δwv ) / Δxu,
+							r_v = ( rs[j]*(x-vs[j]) + rjh - Δwv ) / Δxu
+				if ( r_v < rs[h] || (vs[i] + vs[j] < vs[h] + x && r_w < rs[j]+1)) {
+					vs[i] = vs[j]
+					rs[i] = r_w
+				}
+				else rs[i] = r_v
+				vs[j] = x
+			}
+			++rs[j]
+		}
 		else if (j === 0) {
 			const u = vs[0],
 						Δwx = vs[2] - x
@@ -194,45 +212,42 @@ export default class D {
 			}
 			for (let ir=2; ir<rs.length; ++ir) ++rs[ir]
 		}
-		else {
-			let i = j === 1 || (j !== M-1 && 2*x > vs[j]+vs[j-1] ) ? j : j-1
-			const w = vs[i+1],
-						v = vs[i],
-						Δwu = w-vs[i-1]
+		else if ( j !== 1 && (j === M-1 || 2*x < vs[j+1]+vs[j-2] ) ) { //vs[j]+vs[j-1] ) ) {
+			// u < v < x < w
+			--j
+			let k = j+1,
+					i = j-1
+			const w = vs[k],
+						v = vs[j],
+						Δwu = w-vs[i]
 			if (Δwu !== 0) {
-				const r_x = rs[i] + ( w-x + (x-v)*(rs[i+1] - rs[i-1]) ) / Δwu
-				if ( v < x
-					? vs[i-1]+w < v+x || r_x > rs[i+1]+1
-					: v+x < vs[i-1] + w || r_x < rs[i-1]
-				) rs[i] += ( w+v-2*x ) / Δwu
+				const r_xΔwu = rs[j]*Δwu + ( w-x + (x-v)*(rs[k] - rs[i]) )
+				if ( vs[i]+w < v+x || r_xΔwu >= (rs[k]+1)*Δwu) rs[j] += ( w+v-2*x ) / Δwu
 				else {
-					rs[i] = r_x
-					vs[i] = x
+					rs[j] = r_xΔwu/Δwu
+					vs[j] = x
 				}
 			}
-			while(++i<rs.length) ++rs[i]
+			while(++j<rs.length) ++rs[j]
+		}
+		else {
+			// u < x < v < w
+			let k = j+1,
+					i = j-1
+			const w = vs[k],
+						v = vs[j],
+						Δwu = w-vs[i]
+			if (Δwu !== 0) {
+				const r_xΔwu = rs[j]*Δwu + ( w-x + (x-v)*(rs[k] - rs[i]) )
+				if ( x+v < vs[i]+w || r_xΔwu <= rs[i]*Δwu) rs[j] += ( w+v-2*x ) / Δwu
+				else {
+					rs[j] = r_xΔwu/Δwu
+					vs[j] = x
+				}
+			}
+			while(++j<rs.length) ++rs[j]
 		}
 	}
-}
-
-function newmax(vs, rs, x) {
-	const j = rs.length-1,
-				i = j-1,
-				h = i-1,
-				Δwv = vs[j]-vs[i],
-				Δxu = x - vs[h],
-				rjh = rs[i]*(vs[j]-vs[h])
-	if (Δxu !== 0) {
-		const r_w = ( rs[j]*(x-vs[i]) + rjh - rs[h]*Δwv ) / Δxu,
-					r_v = ( rs[j]*(x-vs[j]) + rjh - Δwv ) / Δxu
-		if ( r_v < rs[h] || (vs[i] + vs[j] < vs[h] + x && r_w < rs[j]+1)) {
-			vs[i] = vs[j]
-			rs[i] = r_w
-		}
-		else rs[i] = r_v
-		vs[j] = x
-	}
-	++rs[j]
 }
 
 function topIndex(arr, v, max) {
