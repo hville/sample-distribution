@@ -113,9 +113,8 @@ export default class D {
 					M = Math.min(rs.length, rs[rs.length-1]),
 					N = rs[M-1]
 		if (x === vs[0] || x === vs[M-1]) return 0.5/N
-		const j = topIndex(vs, x, M),
-					i = j-1
-		return j === 0 || j === M ? 0 : (rs[j] - rs[i]) / (vs[j] - vs[i]) / N
+		const j = topIndex(vs, x, M)
+		return j === 0 || j === M ? 0 : (rs[j] - rs[j-1]) / (vs[j] - vs[j-1]) / N
 	}
 
 	/**
