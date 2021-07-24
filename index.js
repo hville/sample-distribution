@@ -1,13 +1,17 @@
 export default class D {
 
 	constructor(size=32) {
-		const vs = size.buffer ? size : new Float64Array(size.byteLength ? size : 2*size)
-		// make properties !writeable !configurable and !enumerable
+		const buffer = size.buffer || (size.byteLength ? size : new ArrayBuffer(size << 4)),
+					offset = size.byteOffset || 0,
+					byteLn = (size.byteLength || buffer.byteLength) >> 1,
+					length = byteLn >> 3
 		Object.defineProperties(this, {
-			vs: {value: vs},
-			rs: {value: new Float64Array(vs.buffer, vs.byteOffset + vs.byteLength/2, vs.length/2)}
+			vs: {value: new Float64Array(buffer, offset, length)},
+			rs: {value: new Float64Array(buffer, offset + byteLn, length)}
 		})
 	}
+	// for transfers and copies
+	get data() { return new DataView(this.vs.buffer, this.vs.byteOffset, this.vs.byteLength << 1) }
 
 	// Number of samples
 	get N() { return this.rs[this.rs.length-1] }
@@ -38,8 +42,8 @@ export default class D {
 	Σ(pow) { //values as-is with internal uniform interval
 		const vs = this.vs,
 					rs = this.rs,
-					N = Math.min(rs.length, rs[rs.length-1]), // in case the buffer is not full
-					Mm = N-1,
+					M = Math.min(rs.length, rs[rs.length-1]), // in case the buffer is not full
+					Mm = M-1,
 					Op = pow + 1
 		if (pow === 0) return rs[Mm]
 		if (pow === 1) { //same as below but simplified
@@ -48,7 +52,7 @@ export default class D {
 			return sum / Op
 		}
 		let sum = vs[0]**pow
-		for (let i=1; i<N; ++i) {
+		for (let i=1; i<M; ++i) {
 			// https://en.wikipedia.org/wiki/Continuous_uniform_distribution#Moments
 			sum += vs[i]**pow
 					+ (rs[i] - rs[i-1] - 1) * (vs[i]**Op - vs[i-1]**Op) / (vs[i] - vs[i-1]) / Op
@@ -120,7 +124,7 @@ export default class D {
 	 * @param {number} xMax
 	 * @return {void}
 	 */
-	plotF(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1])	{
+	plotF(ctx, xMin=this.vs[0], xMax=this.vs[this.rs.length-1])	{
 		const rs = this.rs,
 					vs = this.vs,
 					xScale = ctx.canvas.width / (xMax-xMin),
@@ -139,7 +143,7 @@ export default class D {
 	 * @param {number} yMax
 	 * @return {void}
 	 */
-	plotf(ctx, xMin = this.vs[0], xMax = this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-1]-this.vs[0])) {
+	plotf(ctx, xMin=this.vs[0], xMax=this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-1]-this.vs[0])) {
 		const rs = this.rs,
 					vs = this.vs,
 					xScale = ctx.canvas.width / (xMax-xMin),
