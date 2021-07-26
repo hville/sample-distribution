@@ -11,9 +11,7 @@
 <canvas id=canvas3></canvas>
 
 <script type=module>
-import Ref from '../ref.js'
 import Rec from '../index.js'
-//import Top from '../best.js'
 
 const $ = document.querySelector.bind(document),
 			m = 32,
@@ -50,11 +48,8 @@ function test(R, selector) {
 	}
 	ctx.fillText(`#${n*q} : ${ms.toPrecision(3)} ms, ${countPixels(ctx).toPrecision(3)}`, 10, 50)
 }
-test(Ref, '#canvas2')
 test(Rec, '#canvas1')
-//test(Top, '#canvas3')
-
-
+test(Rec, '#canvas2')
 
 
 function countPixels(ctx) {
