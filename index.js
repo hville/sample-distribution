@@ -142,7 +142,7 @@ export default class D {
 	 * @param {number} yMax
 	 * @return {void}
 	 */
-	plotf(ctx, xMin=this.vs[0], xMax=this.vs[this.rs.length-1], yMax = 5/(this.vs[this.rs.length-1]-this.vs[0])) {
+	plotf(ctx, xMin=this.vs[0], xMax=this.vs[this.rs.length-1], yMax = 2/(this.Q(0.75)-this.Q(0.25)) ) {
 		const rs = this.rs,
 					vs = this.vs,
 					xScale = ctx.canvas.width / (xMax-xMin),

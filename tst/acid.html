@@ -16,11 +16,13 @@ import Rec from '../index.js'
 //import Top from '../best.js'
 
 const $ = document.querySelector.bind(document),
-			m = 64,
+			m = 32,
 			n = m*8,
-			q = 64,
+			q = 32,
 			size = 256,
-			scale = window.devicePixelRatio
+			scale = window.devicePixelRatio,
+			rnd = new Float64Array(n*q)
+for (let i=0; i<rnd.length; ++i) rnd[i] = Math.random()
 
 function test(R, selector) {
 	const canvas = document.querySelector(selector),
@@ -30,18 +32,21 @@ function test(R, selector) {
   canvas.width = Math.floor(4*size * scale)
   canvas.height = Math.floor(size * scale)
 	ctx.font = '24px mono'
-	ctx.imageSmoothingEnabled = false
+	//ctx.imageSmoothingEnabled = true
 
 	let ms=0
 	for (let qi=0; qi<q; ++qi) {
-		const rec = new R(m)
+		const rec = new R(m),
+					vals = rnd.slice(qi*n,(qi+1)*n)
 		ms -= performance.now()
-		for(let i=0; i<n; ++i) rec.push(Math.random())
+		for(let i=0; i<n; ++i) rec.push(vals[i])
 		ms += performance.now()
+		for(let i=0, b=rec.Q(0), m=canvas.width/(rec.Q(1)-b); i<n; ++i)
+			ctx.fillRect( Math.round((vals[i]-b)*m)+0.5, qi+canvas.height-q-1, 1, 1 )
 		rec.plotf(ctx)
 		ctx.stroke()
-		//rec.plotF(ctx)
-		//ctx.stroke()
+		rec.plotF(ctx)
+		ctx.stroke()
 	}
 	ctx.fillText(`#${n*q} : ${ms.toPrecision(3)} ms, ${countPixels(ctx).toPrecision(3)}`, 10, 50)
 }
