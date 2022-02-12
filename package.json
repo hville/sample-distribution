@@ -24,8 +24,8 @@
   ],
   "author": "Hugo Villeneuve",
   "devDependencies": {
-    "assert-op": "^1.1.0",
-    "norm-dist": "^3.0.0"
+    "assert-op": "^1.2.0",
+    "norm-dist": "^3.1.0"
   },
   "repository": {
     "type": "git",

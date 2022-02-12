@@ -143,6 +143,7 @@ export default class D {
 	 * @return {void}
 	 */
 	plotf(ctx, xMin=this.vs[0], xMax=this.vs[this.rs.length-1], yMax = 2/(this.Q(0.75)-this.Q(0.25)) ) {
+		// f(mode)*IQR ~= 0.5(uniform) 0.54(normal) 0.55(logistic) 0.59(triangular) 0.64(cauchy) 0.69(laplace)
 		const rs = this.rs,
 					vs = this.vs,
 					xScale = ctx.canvas.width / (xMax-xMin),
