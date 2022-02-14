@@ -1,4 +1,5 @@
-export default class D {
+
+class D {
 
 	constructor(size=32) {
 		const buffer = size.buffer || (size.byteLength ? size : new ArrayBuffer(size << 4)),
@@ -263,3 +264,5 @@ function topIndex(arr, v, max) {
 	}
 	return max
 }
+
+module.exports = D;

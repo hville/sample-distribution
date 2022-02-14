@@ -1,6 +1,5 @@
 {
   "name": "sample-distribution",
-  "type": "module",
   "main": "./index.js",
   "browser": "./index.js",
   "version": "1.5.0",
