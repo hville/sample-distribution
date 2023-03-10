@@ -15,12 +15,11 @@ import Rec from '../index.js'
 
 const $ = document.querySelector.bind(document),
 			m = 32,
-			n = m*8,
-			q = 32,
-			size = 256,
+			n = m*12,
+			q = 16,
+			size = 320,
 			scale = window.devicePixelRatio,
 			rnd = new Float64Array(n*q)
-for (let i=0; i<rnd.length; ++i) rnd[i] = Math.random()
 
 function test(R, selector) {
 	const canvas = document.querySelector(selector),
@@ -39,16 +38,18 @@ function test(R, selector) {
 		ms -= performance.now()
 		for(let i=0; i<n; ++i) rec.push(vals[i])
 		ms += performance.now()
-		for(let i=0, b=rec.Q(0), m=canvas.width/(rec.Q(1)-b); i<n; ++i)
-			ctx.fillRect( Math.round((vals[i]-b)*m)+0.5, qi+canvas.height-q-1, 1, 1 )
-		rec.plotf(ctx)
-		ctx.stroke()
-		rec.plotF(ctx)
+		for(let i=0, b=rec.Q(0), m=canvas.width/(rec.Q(1)-b+.2); i<n; ++i)
+			ctx.fillRect( Math.round((vals[i]-b+.1)*m), qi+canvas.height-q, 1, 1 )
+		rec.plotf(ctx, -1.1, 1.1, 2)
+		//ctx.stroke()
+		//rec.plotF(ctx, -1.1, 1.1)
 		ctx.stroke()
 	}
 	ctx.fillText(`#${n*q} : ${ms.toPrecision(3)} ms, ${countPixels(ctx).toPrecision(3)}`, 10, 50)
 }
+for (let i=0; i<rnd.length; ++i) rnd[i] = (Math.random()-0.5)*2
 test(Rec, '#canvas1')
+for (let i=0; i<rnd.length; ++i) rnd[i] = Math.log(1/Math.random() - 1)/3
 test(Rec, '#canvas2')
 
 

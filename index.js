@@ -119,45 +119,53 @@ export default class D {
 
 	/**
 	 * @param {Object} ctx - canvas 2D context
-	 * @param {number} xMin
-	 * @param {number} xMax
+	 * @param {number} vMin
+	 * @param {number} vMax
 	 * @return {void}
 	 */
-	plotF(ctx, xMin=this.vs[0], xMax=this.vs[this.rs.length-1])	{
+	plotF(ctx, vMin=this.vs[0], vMax=this.vs[this.rs.length-1])	{
 		const rs = this.rs,
 					vs = this.vs,
-					xScale = ctx.canvas.width / (xMax-xMin),
-					yScale = ctx.canvas.height / (rs[rs.length-1]),
-					H = ctx.canvas.height
-
+					xScale = (ctx.canvas.width-1) / (vMax-vMin),
+					yScale = (ctx.canvas.height-1) / (rs[rs.length-1]),
+					H = ctx.canvas.height,
+					getX = v => 0.5 + Math.round((v-vMin) * xScale),
+					getY = r => H-0.5 - Math.round(r * yScale)
 		ctx.beginPath()
-		ctx.moveTo( (vs[0]-xMin)*xScale, H )
-		for (let i=0; i<rs.length; ++i) ctx.lineTo( (vs[i]-xMin)*xScale, H-(rs[i]-0.5)*yScale )
-		ctx.lineTo( (vs[rs.length-1]-xMin)*xScale, 0 )
+		ctx.moveTo( getX( Math.min(vs[0], vMin) ), H-0.5 )
+		ctx.lineTo( getX( vs[0] ), H-0.5 )
+		for (let i=0; i<rs.length; ++i) ctx.lineTo( getX( vs[i] ), getY( rs[i] ) )
+		ctx.lineTo( getX( vs[rs.length-1] ), 0.5 )
+		ctx.lineTo( getX( Math.max( vs[rs.length-1], vMax ) ), 0.5 )
 	}
 	/**
 	 * @param {Object} ctx - canvas 2D context
-	 * @param {number} xMin
-	 * @param {number} xMax
+	 * @param {number} vMin
+	 * @param {number} vMax
 	 * @param {number} yMax
 	 * @return {void}
 	 */
-	plotf(ctx, xMin=this.vs[0], xMax=this.vs[this.rs.length-1], yMax = 2/(this.Q(0.75)-this.Q(0.25)) ) {
+	plotf(ctx, vMin=this.vs[0], vMax=this.vs[this.rs.length-1], yMax = 1/(this.Q(0.75)-this.Q(0.25)) ) {
 		// f(mode)*IQR ~= 0.5(uniform) 0.54(normal) 0.55(logistic) 0.59(triangular) 0.64(cauchy) 0.69(laplace)
+		// aim for yMax ~= 3*E(f(mode)) ~= 3*0.5/IQR
 		const rs = this.rs,
 					vs = this.vs,
-					xScale = ctx.canvas.width / (xMax-xMin),
-					yScale = ctx.canvas.height / yMax / rs[rs.length-1],
-					H = ctx.canvas.height
-
-		let x = Math.round((vs[0]-xMin) * xScale)+0.5
+					xScale = (ctx.canvas.width-1) / (vMax-vMin),
+					yScale = (ctx.canvas.height-1) / yMax / rs[rs.length-1],
+					H = ctx.canvas.height,
+					getX = v => 0.5 + Math.round((v-vMin) * xScale),
+					getY = drdv => H-0.5 - Math.round(drdv * yScale)
+		let x = getX(Math.min(vs[0], vMin)),
+				y = H
 		ctx.beginPath()
-		ctx.moveTo( x, H )
-		for (let i=0, j=1, y=0; j<rs.length; i=j++) {
-			ctx.lineTo( x, y = Math.round(H - (rs[j]-rs[i])/(vs[j]-vs[i]) * yScale)+0.5 ) //up
-			ctx.lineTo( x = Math.round((vs[j]-xMin) * xScale)+0.5, y ) //right
+		ctx.moveTo( getX( Math.min(vs[0], vMin) ), H-0.5 )
+		ctx.lineTo( x = getX(vs[0]), H-0.5 ) //right
+		for (let i=0, j=1; j<rs.length; i=j++) {
+			ctx.lineTo( x, y = getY( (rs[j]-rs[i])/(vs[j]-vs[i]) ) ) //up||down
+			ctx.lineTo( x = getX( vs[j] ), y ) //right
 		}
-		ctx.lineTo( x, H )
+		ctx.lineTo( x, H-0.5 ) //down
+		ctx.lineTo( getX( Math.max(vs[rs.length-1], vMax) ), H-0.5 ) //right
 	}
 
 	/**
@@ -180,7 +188,7 @@ export default class D {
 			if (M!==rs.length-1) ++rs[rs.length-1]
 		}
 		// compression, droping a value while maintaining the interval average
-		else if (j === M) {
+		else if (j === M) { // new maximum
 			--j
 			const i = j-1,
 						h = i-1,
@@ -199,7 +207,7 @@ export default class D {
 			}
 			++rs[j]
 		}
-		else if (j === 0) {
+		else if (j === 0) { // new minimum
 			const u = vs[0],
 						Δwx = vs[2] - x
 			if (Δwx !== 0) {
@@ -217,7 +225,7 @@ export default class D {
 			for (let ir=2; ir<rs.length; ++ir) ++rs[ir]
 		}
 		else if ( j !== 1 && (j === M-1 || 2*x < vs[j+1]+vs[j-2] ) ) { //vs[j]+vs[j-1] ) ) {
-			// u < v < x < w
+			// not max, not min : u < v < x < w
 			--j
 			let k = j+1,
 					i = j-1
@@ -235,7 +243,7 @@ export default class D {
 			while(++j<rs.length) ++rs[j]
 		}
 		else {
-			// u < x < v < w
+			// not max, not min : u < x < v < w
 			let k = j+1,
 					i = j-1
 			const w = vs[k],
