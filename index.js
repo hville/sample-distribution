@@ -1,17 +1,12 @@
 export default class D {
 	/**
-	 * @param {Float64Array|DataView|ArrayBuffer|number} [size] number of random variables or buffer to fill
+	 * @param {Float64Array|number} [size] number of random variables or buffer to fill
 	 */
 	constructor(size=32) {
-		const buffer = size.buffer || (size.byteLength ? size : new ArrayBuffer(size << 4)),
-					offset = size.byteOffset || 0,
-					byteLn = (size.byteLength || buffer.byteLength) >> 1,
-					length = byteLn >> 3
-		//semi-private fields
-		Object.defineProperties(this, {
-			vs: {value: new Float64Array(buffer, offset, byteLn >> 2)}, //overlaps rs for exports
-			rs: {value: new Float64Array(buffer, offset + byteLn, byteLn >> 3)}
-		})
+		//vs overlaps rs for full data exports
+		const vs = size.buffer ? new Float64Array(size.buffer, size.byteOffset, size.length) : new Float64Array(size*2),
+					rs = new Float64Array(vs.buffer, vs.byteOffset+vs.byteLength>>1, vs.length>>1)
+		Object.defineProperties(this, { vs: {value: vs}, rs: {value: rs} })
 	}
 	// for transfers and copies
 	get data() { return this.vs }

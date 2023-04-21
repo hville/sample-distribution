@@ -65,9 +65,9 @@ Type `npm run compare` or see `./util/compare.js` for a benchmark and error comp
 * `.Q(probability:number)` number: estimated value for specified probability
 * `.M(order:number)` number: estimated origin moment (ie. E = M(1), V=M(2)-E^2)
 
-## Transferable through this.vs
-* `const copy = new Recorder( other.vs.buffer )`
-* `const otherCopy = new Recorder( new Float64Array(other.vs.buffer, offset) )` if multiple recorders share one buffer
+## Transferable through this.data
+* `const main = new Recorder( new Float64Array(buffer, offset, length) )`
+* `const copy = new Recorder( main.data )` transferable TypedArray
 
 # License
 
