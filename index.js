@@ -5,7 +5,7 @@ export default class D {
 	constructor(size=32) {
 		//vs overlaps rs for full data exports
 		const vs = size.buffer ? new Float64Array(size.buffer, size.byteOffset, size.length) : new Float64Array(size*2),
-					rs = new Float64Array(vs.buffer, vs.byteOffset+vs.byteLength>>1, vs.length>>1)
+					rs = new Float64Array(vs.buffer, vs.byteOffset+(vs.byteLength>>1), vs.length>>1)
 		Object.defineProperties(this, { vs: {value: vs}, rs: {value: rs} })
 	}
 	// for transfers and copies
